@@ -9,12 +9,28 @@ struct Round {
     mine: RPS,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 enum RPS {
     None,
     Rock,
     Paper,
     Scissors,
+}
+
+#[derive(PartialEq, Debug)]
+enum Outcome {
+    None,
+    Lose,
+    Tie,
+    Win,
+}
+fn rps_to_outcome(val: RPS) -> Outcome {
+    match val {
+        RPS::Rock => Outcome::Lose,
+        RPS::Paper => Outcome::Tie,
+        RPS::Scissors => Outcome::Win,
+        RPS::None => Outcome::None,
+    }
 }
 
 fn convert_letter_to_score(letter: &str) -> RPS {
@@ -50,6 +66,33 @@ impl Round {
         }
         return 0;
     }
+
+    fn set_hand_shape(&mut self) {
+        let desired_outcome = rps_to_outcome(self.mine);
+        let mut shape: RPS = RPS::None;
+        if desired_outcome == Outcome::Win {
+            if self.elf == RPS::Rock {
+                shape = RPS::Paper;
+            }
+            if self.elf == RPS::Paper {
+                shape = RPS::Scissors;
+            }
+            if self.elf == RPS::Scissors {
+                shape = RPS::Rock;
+            }
+        } else if desired_outcome == Outcome::Tie {
+            shape = self.elf;
+        } else if desired_outcome == Outcome::Lose {
+            if self.elf == RPS::Rock {
+                shape = RPS::Scissors;
+            } else if self.elf == RPS::Paper {
+                shape = RPS::Rock;
+            } else {
+                shape = RPS::Paper;
+            }
+        }
+        self.mine = shape;
+    }
 }
 
 fn main() {
@@ -57,7 +100,8 @@ fn main() {
     let mut score = 0;
 
     for line in input.lines() {
-        let round = Round::new(line);
+        let mut round = Round::new(line);
+        round.set_hand_shape();
         score += round.my_game_score();
         score += round.mine as i32;
     }
